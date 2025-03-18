@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flappy Bird Game</title>
     <style>
         body {
@@ -23,14 +21,22 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        let bird = { x: 50, y: 250, radius: 15, velocity: 0, gravity: 0.5 };
+        let bird = { x: 50, y: 250, radius: 15, velocity: 0, gravity: 0.4 };
         let pipes = [];
         let score = 0;
         let isGameOver = false;
 
-        document.addEventListener("keydown", () => {
-            bird.velocity = -8;
-        });
+        // **FIX: Added mouse click for jumping**
+        document.addEventListener("keydown", jump);
+        document.addEventListener("click", jump);
+
+        function jump() {
+            if (!isGameOver) {
+                bird.velocity = -7; // Adjusted jump power
+            } else {
+                restartGame();
+            }
+        }
 
         function createPipe() {
             let gap = 120;
@@ -45,18 +51,24 @@
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
 
-            if (bird.y + bird.radius > canvas.height || bird.y - bird.radius < 0) {
+            // **Fix: Prevent bird from going off-screen**
+            if (bird.y + bird.radius > canvas.height) {
+                bird.y = canvas.height - bird.radius;
+                isGameOver = true;
+            }
+            if (bird.y - bird.radius < 0) {
+                bird.y = bird.radius;
                 isGameOver = true;
             }
 
             for (let i = 0; i < pipes.length; i++) {
                 pipes[i].x -= 3;
-                
+
                 if (pipes[i].x + pipes[i].width < 0) {
                     pipes.splice(i, 1);
                     score++;
                 }
-                
+
                 if (
                     bird.x + bird.radius > pipes[i].x &&
                     bird.x - bird.radius < pipes[i].x + pipes[i].width &&
@@ -86,8 +98,17 @@
             ctx.fillText("Score: " + score, 10, 20);
             
             if (isGameOver) {
-                ctx.fillText("Game Over!", canvas.width / 2 - 40, canvas.height / 2);
+                ctx.fillText("Game Over! Click or press any key to restart", 50, canvas.height / 2);
             }
+        }
+
+        function restartGame() {
+            bird.y = 250;
+            bird.velocity = 0;
+            pipes = [];
+            score = 0;
+            isGameOver = false;
+            gameLoop();
         }
 
         function gameLoop() {
