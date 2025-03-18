@@ -21,22 +21,17 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        let bird = { x: 50, y: 250, radius: 15, velocity: 0, gravity: 0.4 };
+        let bird = { x: 50, y: 250, radius: 15, velocity: 0, gravity: 0.5 };
         let pipes = [];
         let score = 0;
         let isGameOver = false;
 
-        // **FIX: Added mouse click for jumping**
-        document.addEventListener("keydown", jump);
-        document.addEventListener("click", jump);
-
-        function jump() {
+        // Event listener for bird jump
+        document.addEventListener("keydown", () => {
             if (!isGameOver) {
-                bird.velocity = -7; // Adjusted jump power
-            } else {
-                restartGame();
+                bird.velocity = -8;
             }
-        }
+        });
 
         function createPipe() {
             let gap = 120;
@@ -47,28 +42,27 @@
 
         function update() {
             if (isGameOver) return;
-            
+
+            // Update bird position
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
 
-            // **Fix: Prevent bird from going off-screen**
-            if (bird.y + bird.radius > canvas.height) {
-                bird.y = canvas.height - bird.radius;
-                isGameOver = true;
-            }
-            if (bird.y - bird.radius < 0) {
-                bird.y = bird.radius;
+            // Check if bird hits the ground or top
+            if (bird.y + bird.radius > canvas.height || bird.y - bird.radius < 0) {
                 isGameOver = true;
             }
 
+            // Move pipes & check for collision
             for (let i = 0; i < pipes.length; i++) {
                 pipes[i].x -= 3;
 
+                // Remove pipes after passing
                 if (pipes[i].x + pipes[i].width < 0) {
                     pipes.splice(i, 1);
                     score++;
                 }
 
+                // Collision detection
                 if (
                     bird.x + bird.radius > pipes[i].x &&
                     bird.x - bird.radius < pipes[i].x + pipes[i].width &&
@@ -82,33 +76,29 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Draw bird
             ctx.fillStyle = "yellow";
             ctx.beginPath();
             ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
             ctx.fill();
 
+            // Draw pipes
             ctx.fillStyle = "green";
             pipes.forEach(pipe => {
                 ctx.fillRect(pipe.x, 0, pipe.width, pipe.topHeight);
                 ctx.fillRect(pipe.x, canvas.height - pipe.bottomHeight, pipe.width, pipe.bottomHeight);
             });
 
+            // Display Score
             ctx.fillStyle = "black";
             ctx.font = "20px Arial";
             ctx.fillText("Score: " + score, 10, 20);
-            
-            if (isGameOver) {
-                ctx.fillText("Game Over! Click or press any key to restart", 50, canvas.height / 2);
-            }
-        }
 
-        function restartGame() {
-            bird.y = 250;
-            bird.velocity = 0;
-            pipes = [];
-            score = 0;
-            isGameOver = false;
-            gameLoop();
+            // Game Over Message with your name
+            if (isGameOver) {
+                ctx.fillText("Game Over!", canvas.width / 2 - 40, canvas.height / 2);
+                ctx.fillText("Created by: Giriraj Pareek", canvas.width / 2 - 80, canvas.height / 2 + 30);
+            }
         }
 
         function gameLoop() {
