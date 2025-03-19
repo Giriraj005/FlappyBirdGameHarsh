@@ -29,23 +29,24 @@
             pipes = [];
             score = 0;
             isGameOver = false;
+            gameLoop();
         }
 
-        resetGame(); // Initialize game on load
+        resetGame(); // Start game
 
-        // Bird jumps when Spacebar or screen tap
+        // Make bird jump on spacebar or screen tap
         document.addEventListener("keydown", (event) => {
             if (event.code === "Space" && !isGameOver) {
                 bird.velocity = lift;
             }
         });
 
+        // Restart game when clicking anywhere
         canvas.addEventListener("click", () => {
             if (isGameOver) {
-                resetGame(); // Restart game if it's over
-                gameLoop(); 
+                resetGame(); 
             } else {
-                bird.velocity = lift; // Make the bird jump
+                bird.velocity = lift; 
             }
         });
 
@@ -59,16 +60,13 @@
         function update() {
             if (isGameOver) return;
 
-            // Bird gravity effect
             bird.velocity += gravity;
             bird.y += bird.velocity;
 
-            // Prevent bird from going out of bounds
             if (bird.y + bird.radius >= canvas.height || bird.y - bird.radius <= 0) {
                 isGameOver = true;
             }
 
-            // Move pipes & check collisions
             for (let i = 0; i < pipes.length; i++) {
                 pipes[i].x -= 4;
 
@@ -90,25 +88,21 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw bird
             ctx.fillStyle = "yellow";
             ctx.beginPath();
             ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
             ctx.fill();
 
-            // Draw pipes
             ctx.fillStyle = "green";
             pipes.forEach(pipe => {
                 ctx.fillRect(pipe.x, 0, pipe.width, pipe.topHeight);
                 ctx.fillRect(pipe.x, canvas.height - pipe.bottomHeight, pipe.width, pipe.bottomHeight);
             });
 
-            // Display Score
             ctx.fillStyle = "black";
             ctx.font = "30px Arial";
             ctx.fillText("Score: " + score, 20, 40);
 
-            // Game Over Message
             if (isGameOver) {
                 ctx.fillText("Game Over!", canvas.width / 2 - 80, canvas.height / 2);
                 ctx.fillText("Tap to Restart", canvas.width / 2 - 100, canvas.height / 2 + 40);
