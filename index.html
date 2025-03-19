@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>The Pareek Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Flappy Bird Game</title>
     <style>
         body {
             text-align: center;
             font-family: Arial, sans-serif;
+            overflow: hidden;
         }
         canvas {
             background-color: skyblue;
@@ -16,16 +19,17 @@
 </head>
 <body>
     <h1>Flappy Bird</h1>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
+    
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
         let bird, pipes, score, isGameOver;
-        let gravity = 0.6, lift = -12;
+        let gravity = 0.4, lift = -8, pipeSpeed = 3;
 
         function resetGame() {
-            bird = { x: 150, y: 300, radius: 20, velocity: 0 };
+            bird = { x: 150, y: 250, radius: 20, velocity: 0 };
             pipes = [];
             score = 0;
             isGameOver = false;
@@ -34,6 +38,12 @@
 
         resetGame(); // Start game
 
+        // Prevent zoom-in on tap
+        document.addEventListener("touchstart", (event) => {
+            event.preventDefault();
+            handleJump();
+        }, { passive: false });
+
         // Make bird jump on spacebar
         document.addEventListener("keydown", (event) => {
             if (event.code === "Space" && !isGameOver) {
@@ -41,20 +51,20 @@
             }
         });
 
-        // Restart game when clicking or tapping anywhere
-        function handleTap() {
+        // Handle screen tap
+        function handleJump() {
             if (isGameOver) {
-                resetGame(); 
+                resetGame();
             } else {
-                bird.velocity = lift;  // Make bird jump
+                bird.velocity = lift;
             }
         }
 
-        canvas.addEventListener("click", handleTap);
-        canvas.addEventListener("touchstart", handleTap);
+        canvas.addEventListener("click", handleJump);
+        canvas.addEventListener("touchstart", handleJump);
 
         function createPipe() {
-            let gap = 150;
+            let gap = 140;
             let topHeight = Math.random() * (canvas.height / 2);
             let bottomHeight = canvas.height - (topHeight + gap);
             pipes.push({ x: canvas.width, topHeight, bottomHeight, width: 50 });
@@ -71,7 +81,7 @@
             }
 
             for (let i = 0; i < pipes.length; i++) {
-                pipes[i].x -= 3;
+                pipes[i].x -= pipeSpeed;
                 
                 if (pipes[i].x + pipes[i].width < 0) {
                     pipes.splice(i, 1);
