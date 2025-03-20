@@ -125,3 +125,32 @@ public class LudoGame extends JFrame {
         });
     }
 }
+import javax.swing.*;
+import java.awt.*;
+
+public class LudoGame extends JFrame {
+    private Image boardImage;
+
+    public LudoGame() {
+        setTitle("Ludo Game");
+        setSize(600, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        // Load board image
+        boardImage = new ImageIcon("assets/ludo_board.png").getImage();
+    }
+
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        g.drawImage(boardImage, 50, 50, 500, 500, this); // Adjust size and position
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            LudoGame game = new LudoGame();
+            game.setVisible(true);
+        });
+    }
+}
