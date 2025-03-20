@@ -1,33 +1,58 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const board = document.getElementById("ludoBoard");
+// 🟢 Initialize Game
+let players = ["red", "blue", "green", "yellow"];
+let currentPlayer = 0;
+let diceRoll = 0;
+let positions = { red: 0, blue: 0, green: 0, yellow: 0 };
 
-    // Generate 15x15 Ludo grid
-    for (let i = 0; i < 225; i++) {
+// 🎲 Roll Dice Function
+function rollDice() {
+    diceRoll = Math.floor(Math.random() * 6) + 1;
+    document.getElementById("diceResult").innerText = `🎲 Rolled: ${diceRoll}`;
+    movePlayer(players[currentPlayer], diceRoll);
+}
+
+// 🚀 Move Player
+function movePlayer(player, steps) {
+    positions[player] += steps; // Move forward
+
+    // 🔹 Update Player Position on Board
+    updateBoard();
+
+    // ⏩ Switch Turn
+    switchTurn();
+}
+
+// 🔄 Switch Turn
+function switchTurn() {
+    currentPlayer = (currentPlayer + 1) % players.length;
+    document.getElementById("turnIndicator").innerText = `🔄 Now it's ${players[currentPlayer]}'s turn!`;
+}
+
+// 🎯 Update Ludo Board UI
+function updateBoard() {
+    let cells = document.querySelectorAll(".cell");
+    cells.forEach(cell => cell.innerHTML = ""); // Clear previous positions
+
+    for (let player in positions) {
+        let pos = positions[player];
+        if (pos < cells.length) {
+            cells[pos].innerHTML = `<div class="player ${player}"></div>`; // Show player
+        }
+    }
+}
+
+// 🌟 Initialize Board Grid
+function createBoard() {
+    let board = document.getElementById("ludoBoard");
+    for (let i = 0; i < 100; i++) {
         let cell = document.createElement("div");
         cell.classList.add("cell");
         board.appendChild(cell);
     }
-});
-
-let currentPlayer = 'red';
-let diceRoll = 0;
-
-function rollDice() {
-    diceRoll = Math.floor(Math.random() * 6) + 1;
-    document.getElementById("diceResult").innerText = `🎲 Rolled: ${diceRoll}`;
-
-    movePlayer(currentPlayer, diceRoll);
-    switchTurn();
 }
 
-function movePlayer(player, steps) {
-    alert(`${player} moves ${steps} steps!`);
-}
-
-function switchTurn() {
-    const players = ['red', 'blue', 'green', 'yellow'];
-    let index = players.indexOf(currentPlayer);
-    currentPlayer = players[(index + 1) % players.length];
-
-    document.getElementById("diceResult").innerText = `🎲 ${currentPlayer}'s turn!`;
-}
+// 🔥 Start the Game
+window.onload = function () {
+    createBoard();
+    document.getElementById("turnIndicator").innerText = `🎲 Roll to Start!`;
+};
