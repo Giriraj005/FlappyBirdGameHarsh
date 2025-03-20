@@ -2,166 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Flappy Bird Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ludo Game</title>
     <style>
-        body {
-            text-align: center;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        canvas {
-            background-color: skyblue;
-            display: none;
-            margin: auto;
-        }
-        #startScreen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        #playerName {
-            padding: 10px;
-            font-size: 16px;
-        }
-        #playButton {
-            margin-top: 10px;
-            padding: 10px 20px;
-            font-size: 18px;
-            cursor: pointer;
-        }
+        body { text-align: center; font-family: Arial, sans-serif; }
+        .board { display: grid; grid-template-columns: repeat(5, 50px); gap: 5px; margin: 20px auto; }
+        .cell { width: 50px; height: 50px; border: 1px solid black; display: flex; align-items: center; justify-content: center; position: relative; }
+        .player { width: 20px; height: 20px; border-radius: 50%; position: absolute; }
+        .red { background-color: red; }
+        .blue { background-color: blue; }
+        .green { background-color: green; }
+        .yellow { background-color: yellow; }
+        .dice { margin: 20px; font-size: 24px; cursor: pointer; padding: 10px; background-color: green; color: white; border: none; }
     </style>
 </head>
 <body>
-    <div id="startScreen">
-        <h1>Flappy Bird</h1>
-        <input type="text" id="playerName" placeholder="Enter your name" />
-        <button id="playButton">Play</button>
-    </div>
+    <h1>Multiplayer Ludo Game</h1>
+    <div class="board" id="board"></div>
+    <button class="dice" onclick="rollDice()">Roll Dice</button>
+    <p>Dice Roll: <span id="diceResult">0</span></p>
+    <p>Current Turn: <span id="currentPlayer">Red</span></p>
     
-    <canvas id="gameCanvas" width="800" height="500"></canvas>
-
     <script>
-        const startScreen = document.getElementById("startScreen");
-        const playButton = document.getElementById("playButton");
-        const playerNameInput = document.getElementById("playerName");
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
+        const players = ["red", "blue", "green", "yellow"];
+        let positions = { red: -1, blue: -1, green: -1, yellow: -1 };
+        let currentPlayerIndex = 0;
 
-        let playersList = [];
-        let bird, pipes, score, isGameOver;
-        let gravity = 0.4, lift = -8, pipeSpeed = 3;
-        let playerName = "";
+        function createBoard() {
+            const board = document.getElementById("board");
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement("div");
+                cell.classList.add("cell");
+                cell.setAttribute("id", "cell-" + i);
+                board.appendChild(cell);
+            }
+            updatePlayerPositions();
+        }
 
-        playButton.addEventListener("click", () => {
-            playerName = playerNameInput.value.trim();
-            if (playerName === "") {
-                alert("Please enter your name to play.");
+        function rollDice() {
+            let diceRoll = Math.floor(Math.random() * 6) + 1;
+            document.getElementById("diceResult").innerText = diceRoll;
+            movePlayer(players[currentPlayerIndex], diceRoll);
+        }
+
+        function movePlayer(player, steps) {
+            if (positions[player] === -1 && steps !== 6) {
+                alert(player + " needs a 6 to start!");
+                nextTurn();
                 return;
             }
-            playersList.push(playerName);
-            startScreen.style.display = "none";
-            canvas.style.display = "block";
-            resetGame();
-        });
+            if (positions[player] === -1 && steps === 6) {
+                positions[player] = 0;
+            } else {
+                positions[player] += steps;
+            }
+            if (positions[player] >= 24) {
+                alert(player + " wins the game!");
+                resetGame();
+                return;
+            }
+            updatePlayerPositions();
+            if (steps !== 6) nextTurn();
+        }
+
+        function updatePlayerPositions() {
+            document.querySelectorAll(".cell").forEach(cell => cell.innerHTML = "");
+            for (let player in positions) {
+                if (positions[player] >= 0) {
+                    const token = document.createElement("div");
+                    token.classList.add("player", player);
+                    document.getElementById("cell-" + positions[player]).appendChild(token);
+                }
+            }
+        }
+
+        function nextTurn() {
+            currentPlayerIndex = (currentPlayerIndex + 1) % 4;
+            document.getElementById("currentPlayer").innerText = players[currentPlayerIndex].charAt(0).toUpperCase() + players[currentPlayerIndex].slice(1);
+        }
 
         function resetGame() {
-            bird = { x: 150, y: 250, radius: 20, velocity: 0 };
-            pipes = [];
-            score = 0;
-            isGameOver = false;
-            gameLoop();
+            positions = { red: -1, blue: -1, green: -1, yellow: -1 };
+            currentPlayerIndex = 0;
+            updatePlayerPositions();
         }
 
-        document.addEventListener("keydown", (event) => {
-            if (event.code === "Space" && !isGameOver) {
-                bird.velocity = lift;
-            }
-        });
-
-        function handleJump() {
-            if (isGameOver) {
-                resetGame();
-            } else {
-                bird.velocity = lift;
-            }
-        }
-
-        canvas.addEventListener("click", handleJump);
-        canvas.addEventListener("touchstart", handleJump);
-
-        function createPipe() {
-            let gap = 140;
-            let topHeight = Math.random() * (canvas.height / 2);
-            let bottomHeight = canvas.height - (topHeight + gap);
-            pipes.push({ x: canvas.width, topHeight, bottomHeight, width: 50 });
-        }
-
-        function update() {
-            if (isGameOver) return;
-            
-            bird.velocity += gravity;
-            bird.y += bird.velocity;
-
-            if (bird.y + bird.radius > canvas.height || bird.y - bird.radius < 0) {
-                isGameOver = true;
-            }
-
-            for (let i = 0; i < pipes.length; i++) {
-                pipes[i].x -= pipeSpeed;
-                
-                if (pipes[i].x + pipes[i].width < 0) {
-                    pipes.splice(i, 1);
-                    score++;
-                }
-                
-                if (
-                    bird.x + bird.radius > pipes[i].x &&
-                    bird.x - bird.radius < pipes[i].x + pipes[i].width &&
-                    (bird.y - bird.radius < pipes[i].topHeight || bird.y + bird.radius > canvas.height - pipes[i].bottomHeight)
-                ) {
-                    isGameOver = true;
-                }
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = "yellow";
-            ctx.beginPath();
-            ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = "green";
-            pipes.forEach(pipe => {
-                ctx.fillRect(pipe.x, 0, pipe.width, pipe.topHeight);
-                ctx.fillRect(pipe.x, canvas.height - pipe.bottomHeight, pipe.width, pipe.bottomHeight);
-            });
-
-            ctx.fillStyle = "black";
-            ctx.font = "20px Arial";
-            ctx.fillText("Player: " + playerName, 10, 20);
-            ctx.fillText("Score: " + score, 10, 40);
-            
-            if (isGameOver) {
-                ctx.font = "30px Arial";
-                ctx.fillText("Game Over!", canvas.width / 2 - 80, canvas.height / 2 - 20);
-                ctx.fillText("Tap to Restart", canvas.width / 2 - 100, canvas.height / 2 + 60);
-            }
-        }
-
-        function gameLoop() {
-            update();
-            draw();
-            if (!isGameOver) {
-                requestAnimationFrame(gameLoop);
-            }
-        }
-
-        setInterval(createPipe, 2000);
+        createBoard();
     </script>
 </body>
 </html>
