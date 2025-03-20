@@ -16,5 +16,7 @@ function switchTurn() {
     const players = ['red', 'blue', 'green', 'yellow'];
     let index = players.indexOf(currentPlayer);
     currentPlayer = players[(index + 1) % players.length];
-    alert(`Now it's ${currentPlayer}'s turn!`);
+
+    // Update text instead of alert
+    document.getElementById("diceResult").innerText = `🎲 ${currentPlayer}'s turn!`;
 }
