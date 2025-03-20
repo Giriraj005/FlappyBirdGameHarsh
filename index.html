@@ -4,90 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ludo Game</title>
-    <style>
-        body {
-            text-align: center;
-            font-family: Arial, sans-serif;
-        }
-        .board {
-            display: grid;
-            grid-template-columns: repeat(15, 1fr);
-            grid-template-rows: repeat(15, 1fr);
-            gap: 2px;
-            width: 500px;
-            height: 500px;
-            margin: 20px auto;
-            background-color: #fff;
-            border: 2px solid black;
-        }
-        .cell {
-            width: 100%;
-            height: 100%;
-            border: 1px solid black;
-        }
-        .safe-zone { background-color: lightgray; }
-        .home-red { background-color: red; }
-        .home-blue { background-color: blue; }
-        .home-green { background-color: green; }
-        .home-yellow { background-color: yellow; }
-        .player {
-            width: 90%;
-            height: 90%;
-            border-radius: 50%;
-            margin: auto;
-            position: relative;
-        }
-        .red { background: red; }
-        .blue { background: blue; }
-        .green { background: green; }
-        .yellow { background: yellow; }
-    </style>
-</head>
-<body>
-    <h1>Ludo Game</h1>
-    <div class="board" id="ludoBoard"></div>
-    <button onclick="rollDice()">Roll Dice</button>
-    <p class="dice" id="diceResult">🎲 Roll the Dice</p>
-    
-    <script>
-        let currentPlayer = 'red';
-        let diceRoll = 0;
-        
-        function rollDice() {
-            diceRoll = Math.floor(Math.random() * 6) + 1;
-            document.getElementById("diceResult").innerText = `🎲 Rolled: ${diceRoll}`;
-            movePlayer(currentPlayer, diceRoll);
-            switchTurn();
-        }
-        
-        function movePlayer(player, steps) {
-            alert(`${player} moves ${steps} steps!`);
-        }
-        
-        function switchTurn() {
-            const players = ['red', 'blue', 'green', 'yellow'];
-            let index = players.indexOf(currentPlayer);
-            currentPlayer = players[(index + 1) % players.length];
-            alert(`Now it's ${currentPlayer}'s turn!`);
-        }
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ludo Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <h1>Ludo Game</h1>
-    <div class="board" id="ludoBoard"></div>
-
+    <div class="board" id="ludoBoard">
+        <!-- Ludo board cells will be generated here -->
+    </div>
+    
     <button onclick="rollDice()">🎲 Roll the Dice</button>
-    <p id="diceResult">🎲 Roll to start</p>
+    <p id="diceResult">Roll to start</p>
 
     <script src="script.js"></script>
 </body>
