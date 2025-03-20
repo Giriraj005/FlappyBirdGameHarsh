@@ -3,21 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ludo Game</title>
+    <title>Advanced Ludo Game</title>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; }
-        .board { display: grid; grid-template-columns: repeat(5, 50px); gap: 5px; margin: 20px auto; }
-        .cell { width: 50px; height: 50px; border: 1px solid black; display: flex; align-items: center; justify-content: center; position: relative; }
-        .player { width: 20px; height: 20px; border-radius: 50%; position: absolute; }
+        body { text-align: center; font-family: Arial, sans-serif; background-color: #f4f4f4; }
+        .board { display: grid; grid-template-columns: repeat(7, 60px); grid-template-rows: repeat(7, 60px); gap: 2px; margin: 20px auto; }
+        .cell { width: 60px; height: 60px; border: 1px solid black; display: flex; align-items: center; justify-content: center; position: relative; }
+        .player { width: 20px; height: 20px; border-radius: 50%; position: absolute; transition: transform 0.3s ease-in-out; }
         .red { background-color: red; }
         .blue { background-color: blue; }
         .green { background-color: green; }
         .yellow { background-color: yellow; }
         .dice { margin: 20px; font-size: 24px; cursor: pointer; padding: 10px; background-color: green; color: white; border: none; }
+        .home { background-color: gray; }
+        .safe { background-color: lightgreen; }
     </style>
 </head>
 <body>
-    <h1>Multiplayer Ludo Game</h1>
+    <h1>Ultimate Ludo Game</h1>
+    <h2>Player: <span id="playerName">Player 1</span></h2>
+    <audio id="diceSound" src="dice-roll.mp3"></audio>
+    <audio id="moveSound" src="move.mp3"></audio>
     <div class="board" id="board"></div>
     <button class="dice" onclick="rollDice()">Roll Dice</button>
     <p>Dice Roll: <span id="diceResult">0</span></p>
@@ -25,54 +30,83 @@
     
     <script>
         const players = ["red", "blue", "green", "yellow"];
-        let positions = { red: -1, blue: -1, green: -1, yellow: -1 };
+        let positions = {
+            red: [-1, -1, -1, -1],
+            blue: [-1, -1, -1, -1],
+            green: [-1, -1, -1, -1],
+            yellow: [-1, -1, -1, -1]
+        };
         let currentPlayerIndex = 0;
 
         function createBoard() {
             const board = document.getElementById("board");
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 49; i++) {
                 const cell = document.createElement("div");
                 cell.classList.add("cell");
                 cell.setAttribute("id", "cell-" + i);
+                if ([0, 6, 42, 48].includes(i)) {
+                    cell.classList.add("home");
+                }
+                if ([8, 15, 22, 29].includes(i)) {
+                    cell.classList.add("safe");
+                }
                 board.appendChild(cell);
             }
             updatePlayerPositions();
         }
 
         function rollDice() {
+            document.getElementById("diceSound").play();
             let diceRoll = Math.floor(Math.random() * 6) + 1;
             document.getElementById("diceResult").innerText = diceRoll;
-            movePlayer(players[currentPlayerIndex], diceRoll);
+            setTimeout(() => movePlayer(players[currentPlayerIndex], diceRoll), 1000);
         }
 
         function movePlayer(player, steps) {
-            if (positions[player] === -1 && steps !== 6) {
-                alert(player + " needs a 6 to start!");
-                nextTurn();
-                return;
+            let moved = false;
+            for (let i = 0; i < 4; i++) {
+                if (positions[player][i] === -1 && steps === 6) {
+                    positions[player][i] = 0;
+                    moved = true;
+                    break;
+                } else if (positions[player][i] >= 0) {
+                    positions[player][i] += steps;
+                    moved = true;
+                    checkKill(player, positions[player][i]);
+                    if (positions[player][i] >= 48) {
+                        positions[player][i] = 48;
+                        checkWin(player);
+                    }
+                    break;
+                }
             }
-            if (positions[player] === -1 && steps === 6) {
-                positions[player] = 0;
-            } else {
-                positions[player] += steps;
-            }
-            if (positions[player] >= 24) {
-                alert(player + " wins the game!");
-                resetGame();
-                return;
-            }
+            document.getElementById("moveSound").play();
             updatePlayerPositions();
-            if (steps !== 6) nextTurn();
+            if (!moved || steps !== 6) nextTurn();
+        }
+
+        function checkKill(player, pos) {
+            for (let opponent of players) {
+                if (opponent !== player) {
+                    for (let i = 0; i < 4; i++) {
+                        if (positions[opponent][i] === pos && !document.getElementById("cell-" + pos).classList.contains("safe")) {
+                            positions[opponent][i] = -1;
+                        }
+                    }
+                }
+            }
         }
 
         function updatePlayerPositions() {
             document.querySelectorAll(".cell").forEach(cell => cell.innerHTML = "");
             for (let player in positions) {
-                if (positions[player] >= 0) {
-                    const token = document.createElement("div");
-                    token.classList.add("player", player);
-                    document.getElementById("cell-" + positions[player]).appendChild(token);
-                }
+                positions[player].forEach(pos => {
+                    if (pos >= 0) {
+                        const token = document.createElement("div");
+                        token.classList.add("player", player);
+                        document.getElementById("cell-" + pos).appendChild(token);
+                    }
+                });
             }
         }
 
@@ -81,8 +115,15 @@
             document.getElementById("currentPlayer").innerText = players[currentPlayerIndex].charAt(0).toUpperCase() + players[currentPlayerIndex].slice(1);
         }
 
+        function checkWin(player) {
+            if (positions[player].every(pos => pos === 48)) {
+                alert(player + " wins the game!");
+                resetGame();
+            }
+        }
+
         function resetGame() {
-            positions = { red: -1, blue: -1, green: -1, yellow: -1 };
+            positions = { red: [-1, -1, -1, -1], blue: [-1, -1, -1, -1], green: [-1, -1, -1, -1], yellow: [-1, -1, -1, -1] };
             currentPlayerIndex = 0;
             updatePlayerPositions();
         }
